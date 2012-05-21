@@ -31,6 +31,11 @@ if exists("*GetRubyIndent")
   finish
 endif
 
+" Set up some defaults.
+if !exists('g:ruby_hanging_indent')
+  let g:ruby_hanging_indent = 1
+endif
+
 let s:cpo_save = &cpo
 set cpo&vim
 
@@ -425,7 +430,8 @@ function GetRubyIndent(...)
       let line = getline(line('.'))
 
       if strpart(line, 0, col('.') - 1) =~ '=\s*$' &&
-            \ strpart(line, col('.') - 1, 2) !~ 'do'
+            \ strpart(line, col('.') - 1, 2) !~ 'do' &&
+            \ g:ruby_hanging_indent
         let ind = virtcol('.') - 1
       elseif getline(msl) =~ '=\s*\(#.*\)\=$'
         let ind = indent(line('.'))
@@ -558,7 +564,12 @@ function GetRubyIndent(...)
   let col = s:Match(lnum, s:ruby_indent_keywords)
   if col > 0
     call cursor(lnum, col)
-    let ind = virtcol('.') - 1 + &sw
+
+    if g:ruby_hanging_indent
+      let ind = virtcol('.') - 1 + &sw
+    else
+      let ind = indent('.') + &sw
+    endif
     " TODO: make this better (we need to count them) (or, if a searchpair
     " fails, we know that something is lacking an end and thus we indent a
     " level
